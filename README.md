@@ -1,1 +1,91 @@
-# Hospital-Pharmacy-Data-Analysis
+##Data Cleaning
+
+Set all the columns with the correct data types eg: ID columns set to text, dates set to date, numbers set to whole number, texts set to text. Unit price and cost set to fixed decimal number.
+
+Trimmed and cleaned all the columns
+
+There were no missing values and errors to correct
+
+Removed duplicates if any for the patient ID, Visit ID & Transaction ID in the Patients, Visits & Pharmacy Transactions respectively
+
+Capitalised each word in cells
+
+Parsed through the data to check for negative values like age, quantity & cost. None found
+
+Added a new column, Calculated total cost=(Unit price) * (Quantity). Parsed through and saw that there were no differences with the given total cost, so deleted the new column
+
+##Data Modelling
+
+For this dataset, my fact tables are: Visits and Pharmacy transactions as they contain quantitative data while my dimension table is patients as it contains descriptive data.
+
+The unique identifiers in patients table is patientID for visits is visitID for pharmacy transactions is transactionID
+
+To create the relationships link patientID in patients and visits tables. This relationship is many-to-one from _visits _to patients table or vice versa. Reveals that one patient can have many visits in the hospital. For pharmacy transactions to visits, the connecting column is visitID and it's many-to-one relationship or vice versa. This reveals that one visit can have many transactions but not vice versa.
+
+Created another table called DimDrug that contains Drug Name, Drug Category & Drug ID. Referenced the pharmacy transactions table and went ahead to delete the other columns and remained with Drug Name & Drug Category. Added an indexed column and formatted a prefix "DRG" to come up with the column Drug ID eg "DRG 1". Removed duplicates hence remained with six drug names and drug categories.
+
+Created another table DimDate from refernced table Visits. Deleted all columns and remained with the visit date column. I added columns from date & time to return columns month, month name, quatre & year
+
+Created 2 tables from the visits table namely FacVisits & DimVisits. FacVisits is a fact table containing patientID, VisitID, Visit date & Length of stay days these are measurable data hence fact table. The DimVisits table contains VisitID, Diagnosis & Department, these are descriptive data hence dimension table
+
+In the Pharmacy Transactions table, added Drug ID by adding a conditional column and using an IF & Else statement that returns the correct drug ID paired to the drug name from the DimDrug table.
+
+Merged queries using visitID both in Pharmacy Transactions & Visits table using Left outer merge. Added Patient_ID from Visits table into Pharmacy Transactions. From Ptaient to Pharmacy transactions, Patient ID used as one to many query.
+
+For the relationships: (Visit_ID)Visit table - (Visit_ID)Pharmacy transactions = one-many
+
+(Visit_ID)FacVisits - (Visit_ID)Pharmacy transactions = one-many
+
+(Visit_ID)DimVisits - (Visit_ID)Pharmacy transactions = one-many
+
+(Visit_ID)DimDate - (Visit_ID)Pharmacy transactions = one-many
+
+(Drug_ID)DimDrug - (Drug_ID)Pharmacy transactions = one-many
+
+(Visit_ID)Visit table - (Visit_ID)Pharmacy transactions = one-many
+
+(Patient_ID)Patient - (Patient_ID)Pharmacy transactions = one-many
+
+(Visit_ID)Visit table_ - (Visit_ID)FacVisists = one-one
+
+(Visit_ID)Visit table_ - (Visit_ID)DimDate = one-one
+
+(Visit_ID)Visit table_ - (Visit_ID)DimVisits = one-one
+
+##Data Analysis To visualise the diseases most common across counties, used a matrix table. The rows had the county from the patients table, and the columns were the diseases from the visits table. The value field was the count of visitID. Formatted the cells to show red colour for the max values, white colour for middle and blue colour for the minimum values. From the chart, Typhoid & Diabetes are common in Kiambu, Hypertension is most common in Kisumu, Diabetes is most common in Mombasa, Pneumonia is most common in the capital city and the flu is most common in Nakuru and Uasin Gishu.
+
+To visualise which departments generate a higher pharmacy revenue - used a pie chart with the value being the total cost & the legend being the department. From the charts, Inpatient>>>Emergeny>>>Outpatient
+
+To visualise which age groups consume the most drugs - used a stacked bar chart. Used a Switch function to come up with a column that will group ages into: <1yr - Infant 1-14yrs - Child 15-44yrs - Young adult 45-59yrs - Middle Age 60-74yrs - Elderly
+
+75yrs - Senior ie
+
+`Age_Group = SWITCH(
+    TRUE(),
+    [Age] < 1, "Infant",
+    [Age] >= 1 && [Age] <= 14, "Child",
+    [Age] >= 15 && [Age] <= 44, "Young Adult",
+    [Age] >= 45 && [Age] <= 59, "Middle-age",
+    [Age] >= 60 && [Age] <= 74, "Elderly",
+    [Age] >= 75, "Senior",
+    "Unknown")`
+Used a stacked bar chart of age group vs the drug count. From the chart, **young adults use more drugs compared to other age groups **
+
+To visualise if a high number of patients always leads to higher pharmacy revenue, I used a combo chart. Came up with a new measure Total Visits=Total Visits = COUNTROWS(Visits). This is the sum of visits made to the facility. The columns were the total cost and the line was the total visits and the x-axis was the months. For statistical correctness, plotted a scatter plot where x-axis was total visits, y-axis was total cost and value was department. From the charts, we can conclude that high numbers of patients leads to a higher pharmacy revenue, evidenced by the peak months of July & August. The scatter plot has a positive gradient, confirming the inference.
+
+To visualise if some diagnosis are associated with longer hospital stay but less pharmacy spending, plotted a combo chart for this data. The x-axis was diagnosis, the column was the total cost, and the line was the total length of stay. From the chart, typhoid is associated with longer hospital stay and higher pharmacy spending, while the flu is associated with a longer hospital stay but little pharmacy spending.
+
+Dashboard
+KPI cards were:
+
+Total visits - Total visits measure ie Total Visits = COUNTROWS(Visits)
+
+Total Pharmacy revenue - Total revenue measure ie Total Revenue = sum(Pharmacy_Transactions[Total_Cost])
+
+Average days spent - Average days stayed ie Average days stayed = AVERAGE(Visits[Length_of_Stay_Days]) Plotted chars showing:
+
+Diseases trend over time - A line chart where x-axis is quarter y axis is count of diagnosis and legend is diagnosis
+
+Pharmacy cost breakdown by category - A stacked bar chart where x axis is diagnosis and y axis is total revenue
+
+County and Department comparisons - A stacked bar chart where x axis is county and y axis is count of visits and the legend is departments. Slicers for county, department and visit date
